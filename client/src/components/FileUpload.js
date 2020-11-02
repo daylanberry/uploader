@@ -1,30 +1,24 @@
-import React, { Component } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 
 
-class FileUpload extends Component {
+const FileUpload = (props) => {
 
-  constructor(props) {
-    super(props);
+  const [success, setSuccess] = useState(false);
+  const [url, setUrl] = useState('');
+  const [key, setKey] = useState('');
+  let uploadInput = useRef(null)
 
-    this.state = {
-      success: false,
-      url: ''
-    }
+  const handleChange = () => {
+    setSuccess(false);
+    setUrl('');
+    setKey('');
   }
 
-  handleChange = (e) => {
-    this.setState({
-      success: false,
-      url: '',
-      key: ''
-    })
-  }
-
-  handleUpload = (ev) => {
-    let file = this.uploadInput.files[0];
+  const handleUpload = (ev) => {
+    let file = uploadInput.files[0];
     // Split the filename to get the name and type
-    let fileParts = this.uploadInput.files[0].name.split('.');
+    let fileParts = uploadInput.files[0].name.split('.');
     let fileName = fileParts[0];
     let fileType = fileParts[1];
 
@@ -40,10 +34,8 @@ class FileUpload extends Component {
       var splitUrl = url.split('/')
       var key = splitUrl[splitUrl.length - 1]
 
-      this.setState({
-        url: url,
-        key
-      })
+      setUrl(url)
+      setKey(key)
 
      // Put the fileType in the headers for the upload
       var options = {
@@ -55,7 +47,7 @@ class FileUpload extends Component {
       axios.put(signedRequest,file,options)
       .then(result => {
         console.log("Response from s3")
-        this.setState({success: true});
+        setSuccess(true);
       })
       .catch(error => {
         alert("ERROR " + JSON.stringify(error));
@@ -66,26 +58,27 @@ class FileUpload extends Component {
     })
   }
 
-  render() {
-    const SuccessMessage = () => (
-      <div style={{padding:50}}>
-        <h3 style={{color: 'green'}}>SUCCESSFUL UPLOAD</h3>
-        <a href={this.state.url}>Access the file here</a>
+  const SuccessMessage = () => (
+    <div style={{padding:50}}>
+      <h3 style={{color: 'green'}}>SUCCESSFUL UPLOAD</h3>
+      <a href={url}>Access the file here</a>
+      <br/>
+    </div>
+  )
+
+
+  return (
+    <div className="App">
+      <center>
+        <h1>UPLOAD A FILE</h1>
+        {success ? <SuccessMessage/> : null}
+        <input onChange={handleChange} ref={(ref) => { uploadInput = ref; }} type="file"/>
         <br/>
-      </div>
-    )
-    return (
-      <div className="App">
-        <center>
-          <h1>UPLOAD A FILE</h1>
-          {this.state.success ? <SuccessMessage/> : null}
-          <input onChange={this.handleChange} ref={(ref) => { this.uploadInput = ref; }} type="file"/>
-          <br/>
-          <button onClick={this.handleUpload}>UPLOAD</button>
-        </center>
-      </div>
-    );
-  }
+        <button onClick={handleUpload}>UPLOAD</button>
+      </center>
+    </div>
+  );
+
 
 }
 
